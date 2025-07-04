@@ -199,6 +199,7 @@ fn serialize_option_string<S>(value: &Option<String>, serializer: S) -> Result<S
 where
     S: serde::Serializer,
 {
+    panic!("panic template_src");
     match value {
         Some(s) if !s.is_empty() => serializer.serialize_some(s),
         // _ => serializer.serialize_none(),
@@ -210,6 +211,7 @@ fn serialize_option_pathbuf<S>(value: &Option<PathBuf>, serializer: S) -> Result
 where
     S: serde::Serializer,
 {
+    panic!("panic template_path");
     match value {
         Some(p) if !p.as_path().to_string_lossy().is_empty() => serializer.serialize_some(p),
         // _ => serializer.serialize_none(),
