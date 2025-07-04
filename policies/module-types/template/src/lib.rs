@@ -201,7 +201,8 @@ where
 {
     match value {
         Some(s) if !s.is_empty() => serializer.serialize_some(s),
-        _ => serializer.serialize_none(),
+        // _ => serializer.serialize_none(),
+        _ => panic!("panic template_src NONE"),
     }
 }
 
@@ -213,7 +214,8 @@ where
         Some(p) if !p.as_path().to_str().map_or(true, |s| s.is_empty()) => {
             serializer.serialize_some(p)
         }
-        _ => serializer.serialize_none(),
+        // _ => serializer.serialize_none(),
+        _ => panic!("panic template_path NONE"),
     }
 }
 
