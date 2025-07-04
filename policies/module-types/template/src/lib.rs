@@ -229,8 +229,18 @@ impl ModuleType0 for Template {
         let parameters: TemplateParameters =
             serde_json::from_value(Value::Object(parameters.data.clone()))?;
 
-        if let (None, None) = (parameters.template_path, parameters.template_src) {
-            bail!("Need one of 'template_path' and 'template_src'")
+        // if let (None, None) = (parameters.template_path, parameters.template_src) {
+        //     bail!("Need one of 'template_path' and 'template_src'")
+        // }
+        match (
+            parameters.template_path.is_some(),
+            parameters.template_src.is_some(),
+        ) {
+            (true, true) => bail!("Only one of 'template_path' and 'template_src' can be provided"),
+            (false, false) => {
+                bail!("Need one of 'template_path' and 'template_src'")
+            }
+            _ => (),
         }
 
         Ok(())
