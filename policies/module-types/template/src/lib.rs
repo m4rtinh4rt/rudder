@@ -199,6 +199,7 @@ fn serialize_option_string<S>(value: &Option<String>, serializer: S) -> Result<S
 where
     S: serde::Serializer,
 {
+    println!("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     panic!("panic template_src");
     match value {
         Some(s) if !s.is_empty() => serializer.serialize_some(s),
