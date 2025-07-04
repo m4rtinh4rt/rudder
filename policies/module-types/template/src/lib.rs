@@ -172,10 +172,16 @@ pub struct TemplateParameters {
     /// Output file path
     path: PathBuf,
     /// Source template path
-    #[serde(skip_serializing_if = "is_pathbuf_none_or_empty")]
+    #[serde(
+        serialize_with = "serialize_option_pathbuf",
+        skip_serializing_if = "Option::is_none"
+    )]
     template_path: Option<PathBuf>,
     /// Inlined source template
-    #[serde(skip_serializing_if = "is_string_none_or_empty")]
+    #[serde(
+        serialize_with = "serialize_option_string",
+        skip_serializing_if = "Option::is_none"
+    )]
     template_src: Option<String>,
     /// Templating engine
     #[serde(default)]
@@ -184,7 +190,7 @@ pub struct TemplateParameters {
     #[serde(default)]
     data: Value,
     /// Datastate file path
-    #[serde(skip_serializing_if = "is_pathbuf_none_or_empty")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     datastate_path: Option<PathBuf>,
     /// Controls output of diffs in the report
     #[serde(default = "default_as_true")]
@@ -195,14 +201,26 @@ fn default_as_true() -> bool {
     true
 }
 
-fn is_string_none_or_empty(s: &Option<String>) -> bool {
-    s.as_ref().map_or(true, |s| s.is_empty())
+fn serialize_option_string<S>(value: &Option<String>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    match value {
+        Some(s) if !s.is_empty() => serializer.serialize_some(s),
+        _ => serializer.serialize_none(),
+    }
 }
 
-fn is_pathbuf_none_or_empty(p: &Option<PathBuf>) -> bool {
-    p.as_ref().map_or(true, |p| {
-        p.as_path().to_str().map_or(true, |s| s.is_empty())
-    })
+fn serialize_option_pathbuf<S>(value: &Option<PathBuf>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    match value {
+        Some(p) if !p.as_path().to_str().map_or(true, |s| s.is_empty()) => {
+            serializer.serialize_some(p)
+        }
+        _ => serializer.serialize_none(),
+    }
 }
 
 // Module
