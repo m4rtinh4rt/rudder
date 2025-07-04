@@ -26,7 +26,7 @@ use rudder_module_type::{
     CheckApplyResult, ModuleType0, ModuleTypeMetadata, Outcome, PolicyMode, ValidateResult,
     backup::Backup, parameters::Parameters, rudder_debug, run_module,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 // Configuration
 
@@ -172,10 +172,10 @@ pub struct TemplateParameters {
     /// Output file path
     path: PathBuf,
     /// Source template path
-    #[serde(serialize_with = "serialize_option_pathbuf")]
+    #[serde(deserialize_with = "deserialize_option_pathbuf")]
     template_path: Option<PathBuf>,
     /// Inlined source template
-    #[serde(serialize_with = "serialize_option_string")]
+    #[serde(deserialize_with = "deserialize_option_string")]
     template_src: Option<String>,
     /// Templating engine
     #[serde(default)]
@@ -195,29 +195,26 @@ fn default_as_true() -> bool {
     true
 }
 
-fn serialize_option_string<S>(value: &Option<String>, serializer: S) -> Result<S::Ok, S::Error>
+fn deserialize_option_string<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
 where
-    S: serde::Serializer,
+    D: Deserializer<'de>,
 {
-    println!("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    panic!("panic template_src");
-    match value {
-        Some(s) if !s.is_empty() => serializer.serialize_some(s),
-        // _ => serializer.serialize_none(),
-        _ => panic!("panic template_src NONE"),
-    }
+    let value: Option<String> = Option::deserialize(deserializer)?;
+    Ok(value.and_then(|s| if s.is_empty() { None } else { Some(s) }))
 }
 
-fn serialize_option_pathbuf<S>(value: &Option<PathBuf>, serializer: S) -> Result<S::Ok, S::Error>
+fn deserialize_option_pathbuf<'de, D>(deserializer: D) -> Result<Option<PathBuf>, D::Error>
 where
-    S: serde::Serializer,
+    D: Deserializer<'de>,
 {
-    panic!("panic template_path");
-    match value {
-        Some(p) if !p.as_path().to_string_lossy().is_empty() => serializer.serialize_some(p),
-        // _ => serializer.serialize_none(),
-        _ => panic!("panic template_path NONE"),
-    }
+    let value: Option<PathBuf> = Option::deserialize(deserializer)?;
+    Ok(value.and_then(|p| {
+        if p.as_path().to_str().map_or(true, |s| s.is_empty()) {
+            None
+        } else {
+            Some(p)
+        }
+    }))
 }
 
 // Module
