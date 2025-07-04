@@ -172,16 +172,10 @@ pub struct TemplateParameters {
     /// Output file path
     path: PathBuf,
     /// Source template path
-    #[serde(
-        serialize_with = "serialize_option_pathbuf",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(serialize_with = "serialize_option_pathbuf")]
     template_path: Option<PathBuf>,
     /// Inlined source template
-    #[serde(
-        serialize_with = "serialize_option_string",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(serialize_with = "serialize_option_string")]
     template_src: Option<String>,
     /// Templating engine
     #[serde(default)]
