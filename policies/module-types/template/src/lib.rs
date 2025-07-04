@@ -250,7 +250,11 @@ impl ModuleType0 for Template {
             parameters.template_path.is_some(),
             parameters.template_src.is_some(),
         ) {
-            (true, true) => bail!("Only one of 'template_path' and 'template_src' can be provided"),
+            (true, true) => bail!(
+                "Only one of 'template_path' and 'template_src' can be provided '{}' and '{}'",
+                parameters.template_src.unwrap(),
+                parameters.template_path.unwrap().display()
+            ),
             (false, false) => {
                 bail!("Need one of 'template_path' and 'template_src'")
             }
