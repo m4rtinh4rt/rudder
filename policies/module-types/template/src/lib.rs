@@ -172,10 +172,10 @@ pub struct TemplateParameters {
     /// Output file path
     path: PathBuf,
     /// Source template path
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_pathbuf_none_or_empty")]
     template_path: Option<PathBuf>,
     /// Inlined source template
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_string_none_or_empty")]
     template_src: Option<String>,
     /// Templating engine
     #[serde(default)]
@@ -184,7 +184,7 @@ pub struct TemplateParameters {
     #[serde(default)]
     data: Value,
     /// Datastate file path
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_pathbuf_none_or_empty")]
     datastate_path: Option<PathBuf>,
     /// Controls output of diffs in the report
     #[serde(default = "default_as_true")]
@@ -193,6 +193,16 @@ pub struct TemplateParameters {
 
 fn default_as_true() -> bool {
     true
+}
+
+fn is_string_none_or_empty(s: &Option<String>) -> bool {
+    s.as_ref().map_or(true, |s| s.is_empty())
+}
+
+fn is_pathbuf_none_or_empty(p: &Option<PathBuf>) -> bool {
+    p.as_ref().map_or(true, |p| {
+        p.as_path().to_str().map_or(true, |s| s.is_empty())
+    })
 }
 
 // Module
