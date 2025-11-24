@@ -305,7 +305,7 @@ impl ModuleType0 for Template {
             bail!("Could not get datastate file")
         };
 
-        let output = match p.engine {
+        let after = match p.engine {
             Engine::Mustache => {
                 Engine::mustache(p.template_path.as_deref(), p.template_string, template_data)?
             }
@@ -336,11 +336,11 @@ impl ModuleType0 for Template {
         let already_present = output_file.exists();
 
         // Check if already correct
-        let mut content = String::new();
+        let mut before = String::new();
         let already_correct = if already_present {
-            content = read_to_string(output_file)
+            before = read_to_string(output_file)
                 .with_context(|| format!("Failed to read file {output_file_d}"))?;
-            if content == output {
+            if before == after {
                 true
             } else {
                 rudder_debug!(
@@ -354,12 +354,8 @@ impl ModuleType0 for Template {
             false
         };
 
-        let reported_diff = compute_diff_or_warning(
-            &content,
-            &output,
-            &output_file_d.to_string(),
-            p.show_content,
-        );
+        let reported_diff =
+            report_output(&before, &after, &output_file_d.to_string(), p.show_content);
 
         let outcome = match (already_correct, mode) {
             (true, _) => Outcome::success(),
@@ -379,7 +375,7 @@ impl ModuleType0 for Template {
                 }
 
                 // Write file
-                fs::write(output_file, output.as_bytes())
+                fs::write(output_file, after.as_bytes())
                     .with_context(|| format!("Failed to write file {output_file_d}"))?;
 
                 let source_file = p
@@ -409,14 +405,9 @@ pub fn diff(old: String, new: String) -> String {
     unified.context_radius(3).header("old", "new").to_string()
 }
 
-fn compute_diff_or_warning(
-    content: &str,
-    output: &str,
-    output_file_d: &str,
-    show_content: bool,
-) -> String {
+fn report_output(before: &str, after: &str, output_file_d: &str, show_content: bool) -> String {
     if show_content {
-        let reported_diff = diff(content.to_string(), output.to_string());
+        let reported_diff = diff(before.to_string(), after.to_string());
         let max_reported_diff = 10_000;
 
         if reported_diff.len() > max_reported_diff {
@@ -427,7 +418,7 @@ fn compute_diff_or_warning(
             reported_diff
         }
     } else {
-        format!("Changes to {output_file_d} could not be reported. The diff output is disabled.")
+        format!("The diff output is disabled. Changes to {output_file_d} are not being reported.")
     }
 }
 
